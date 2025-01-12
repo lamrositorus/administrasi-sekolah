@@ -1,6 +1,6 @@
-import React from 'react'
-import { useParams } from 'react-router-dom'
-import Header from '../pages/Header'
+import React from 'react';
+import { useParams } from 'react-router-dom';
+import Header from '../pages/Header';
 
 const ParentComponent = () => {
   const id = useParams();
@@ -9,6 +9,6 @@ const ParentComponent = () => {
       <Header Userid={id} />
       <div>ParentComponent</div>
     </div>
-  )
-}
-export default ParentComponent
+  );
+};
+export default ParentComponent;

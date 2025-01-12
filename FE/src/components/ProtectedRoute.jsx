@@ -7,7 +7,10 @@ const ProtectedRoute = ({ children }) => {
   const { user } = useAuth(); // Ambil informasi pengguna dari context
 
   // Cek apakah pengguna terautentikasi dan memiliki akses ke rute
-  if (!user || !roles[user.role]?.canAccess.includes(window.location.pathname)) {
+  if (
+    !user ||
+    !roles[user.role]?.canAccess.includes(window.location.pathname)
+  ) {
     return <Navigate to="/pengguna/login" />;
   }
 
