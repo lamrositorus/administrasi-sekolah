@@ -5,11 +5,6 @@ const responsePayload = (statusCode, message, data, res) => {
       message: message,
       data: data,
     },
-    metadata: {
-      prev: '',
-      next: '',
-      current: '',
-    },
-  })
-}
-module.exports = responsePayload
+  });
+};
+module.exports = responsePayload;

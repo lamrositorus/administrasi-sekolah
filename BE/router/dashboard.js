@@ -1,12 +1,12 @@
-const express = require('express')
-const router = express.Router()
-const db = require('../connection')
-const responsePayload = require('../response')
+const express = require('express');
+const router = express.Router();
+const db = require('../connection');
+const responsePayload = require('../response');
 
 // GET /dashboard
 router.get('/', (req, res) => {
   // Mengambil data statistik dari berbagai tabel
-  const stats = {}
+  const stats = {};
 
   // Menghitung jumlah siswa
   db.query(
@@ -17,10 +17,10 @@ router.get('/', (req, res) => {
           500,
           'Terjadi kesalahan saat mengambil data siswa',
           null,
-          res,
-        )
+          res
+        );
       }
-      stats.totalStudents = results.rows[0].totalstudents // Accessing the correct property
+      stats.totalStudents = results.rows[0].totalstudents; // Accessing the correct property
 
       // Menghitung jumlah guru
       db.query(
@@ -31,10 +31,10 @@ router.get('/', (req, res) => {
               500,
               'Terjadi kesalahan saat mengambil data guru',
               null,
-              res,
-            )
+              res
+            );
           }
-          stats.totalTeachers = results.rows[0].totalteachers // Accessing the correct property
+          stats.totalTeachers = results.rows[0].totalteachers; // Accessing the correct property
 
           // Menghitung jumlah kelas
           db.query(
@@ -45,10 +45,10 @@ router.get('/', (req, res) => {
                   500,
                   'Terjadi kesalahan saat mengambil data kelas',
                   null,
-                  res,
-                )
+                  res
+                );
               }
-              stats.totalClasses = results.rows[0].totalclasses // Accessing the correct property
+              stats.totalClasses = results.rows[0].totalclasses; // Accessing the correct property
 
               // Menghitung jumlah mata pelajaran
               db.query(
@@ -59,26 +59,26 @@ router.get('/', (req, res) => {
                       500,
                       'Terjadi kesalahan saat mengambil data mata pelajaran',
                       null,
-                      res,
-                    )
+                      res
+                    );
                   }
-                  stats.totalSubjects = results.rows[0].totalsubjects // Accessing the correct property
+                  stats.totalSubjects = results.rows[0].totalsubjects; // Accessing the correct property
 
                   // Mengembalikan semua statistik
                   return responsePayload(
                     200,
                     'Data dashboard berhasil diambil',
                     stats,
-                    res,
-                  )
-                },
-              )
-            },
-          )
-        },
-      )
-    },
-  )
-})
+                    res
+                  );
+                }
+              );
+            }
+          );
+        }
+      );
+    }
+  );
+});
 
-module.exports = router
+module.exports = router;
