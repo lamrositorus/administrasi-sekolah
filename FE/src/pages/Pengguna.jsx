@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { API_Source } from '../global/Apisource';
-import { FaUserEdit, FaTrash } from 'react-icons/fa'; // Import icons from react-icons
+import { useParams, useNavigate } from 'react-router-dom'; // Import useParams and useNavigate
+import { API_Source } from '../global/Apisource'; // Importing the API source
+import { FaUserEdit, FaTrash, FaUser , FaLock, FaCalendarAlt } from 'react-icons/fa'; // Importing icons from react-icons
+import { motion } from 'framer-motion'; // Import motion from Framer Motion
+import Swal from 'sweetalert2'; // Import SweetAlert
 
-export const Pengguna = () => {
+export const Pengguna = ({ isDarkMode, language }) => {
   const { id } = useParams(); // Get the userid from the URL
   const [profileData, setProfileData] = useState(null);
   const [error, setError] = useState('');
@@ -30,25 +32,54 @@ export const Pengguna = () => {
 
   const handleUpdate = async (event) => {
     event.preventDefault();
-    try {
-      const updatedData = await API_Source.updateProfile(
-        id,
-        username,
-        password,
-        role
-      ); // Update user data
-      setProfileData(updatedData); // Update the profile data in state
-      setIsEditing(false); // Exit editing mode
-    } catch (err) {
-      setError('Failed to update profile: ' + err.message); // Handle error
+    const result = await Swal.fire({
+      title: language === 'en' ? 'Are you sure?' : 'Apakah Anda yakin?',
+      text: language === 'en' ? 'You are about to update this profile.' : 'Anda akan memperbarui profil ini.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: language === 'en' ? 'Yes, update it!' : 'Ya, perbarui!',
+      cancelButtonText: language === 'en' ? 'Cancel' : 'Batal',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const updatedData = await API_Source.updateProfile(
+          id,
+          username,
+          password,
+          role
+        ); // Update user data
+        setProfileData(updatedData); // Update the profile data in state
+        setIsEditing(false); // Exit editing mode
+        Swal.fire({
+          icon: 'success',
+          title: language === 'en' ? 'Updated!' : 'Diperbarui!',
+          text: language === 'en' ? 'Profile updated successfully.' : 'Profil telah diperbarui.',
+        });
+      } catch (err) {
+        setError('Failed to update profile: ' + err.message); // Handle error
+      }
     }
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this profile?')) {
+    const result = await Swal.fire({
+      title: language === 'en' ? 'Are you sure?' : 'Apakah Anda yakin?',
+      text: language === 'en' ? 'You are about to delete this profile.' : 'Anda akan menghapus profil ini.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: language === 'en' ? 'Yes, delete it!' : 'Ya, hapus!',
+      cancelButtonText: language === 'en' ? 'Cancel' : 'Batal',
+    });
+
+    if (result.isConfirmed) {
       try {
         await API_Source.delete(id); // Call the delete method
-        alert('Profile deleted successfully.');
+        Swal.fire({
+          icon: 'success',
+          title: language === 'en' ? 'Deleted!' : 'Dihapus!',
+          text: language === 'en' ? 'Profile deleted successfully.' : 'Profil telah dihapus.',
+        });
         navigate('/pengguna/login'); // Redirect to login page after deletion
       } catch (err) {
         setError('Failed to delete profile: ' + err.message); // Handle error
@@ -61,22 +92,37 @@ export const Pengguna = () => {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">User Profile</h1>
+    <div className={`p-6 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-black'} min-h-screen`}>
+      <motion.h1
+        className="text-3xl font-bold mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <FaUser  className="inline-block mr-2" />
+        {language === 'en' ? 'User  Profile' : 'Profil Pengguna'}
+      </motion.h1>
       {profileData ? (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <table className="min-w-full bg-white border border-gray-300">
+        <div className={`shadow-md rounded-lg p-6 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}`}>
+          <motion.table
+            className="min-w-full border border-gray-300"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
             <tbody>
               <tr>
-                <td className="py-2 px-4 border-b font-medium">Username:</td>
-                <td className="py-2 px-4 border-b">
+                <td className="py-2 px-4 border-b font-medium text-left">
+                  <FaUser  className="inline-block mr-1" /> {language === 'en' ? 'Username:' : 'Username:'}
+                </td>
+                <td className="py-2 px-4 border-b text-left">
                   {isEditing ? (
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       required
-                      className="border border-gray-300 rounded-md p-1"
+                      className={`border border-gray-300 rounded-md p-1 ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}
                     />
                   ) : (
                     profileData.username
@@ -84,18 +130,20 @@ export const Pengguna = () => {
                 </td>
               </tr>
               <tr>
-                <td className="py-2 px-4 border-b font-medium">Role:</td>
-                <td className="py-2 px-4 border-b">
+                <td className="py-2 px-4 border-b font-medium text-left">
+                  <FaUser  className="inline-block mr-1" /> {language === 'en' ? 'Role:' : 'Peran:'}
+                </td>
+                <td className="py-2 px-4 border-b text-left">
                   {isEditing ? (
                     <select
                       value={role}
                       onChange={(e) => setRole(e.target.value)}
                       required
-                      className="border border-gray-300 rounded-md p-1"
+                      className={`border border-gray-300 rounded-md p-1 ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}
                     >
-                      <option value="adm">Admin</option>
-                      <option value="tea">Teacher</option>
-                      <option value="stu">Student</option>
+                      <option value="adm">{language === 'en' ? 'Admin' : 'Admin'}</option>
+                      <option value="tea">{language === 'en' ? 'Teacher' : 'Guru'}</option>
+                      <option value="stu">{language === 'en' ? 'Student' : 'Siswa'}</option>
                     </select>
                   ) : (
                     profileData.role
@@ -103,15 +151,17 @@ export const Pengguna = () => {
                 </td>
               </tr>
               <tr>
-                <td className="py-2 px-4 border-b font-medium">Password:</td>
-                <td className="py-2 px-4 border-b">
+                <td className="py-2 px-4 border-b font-medium text-left">
+                  <FaLock className="inline-block mr-1" /> {language === 'en' ? 'Password:' : 'Kata Sandi:'}
+                </td>
+                <td className="py-2 px-4 border-b text-left">
                   {isEditing ? (
                     <input
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="border border-gray- 300 rounded-md p-1"
+                      className={`border border-gray-300 rounded-md p-1 ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}
                     />
                   ) : (
                     '********' // Hide password in non-edit mode
@@ -119,33 +169,36 @@ export const Pengguna = () => {
                 </td>
               </tr>
               <tr>
-                <td className="py-2 px-4 border-b font-medium">Created At:</td>
-                <td className="py-2 px-4 border-b">
+                <td className="py-2 px-4 border-b font-medium text-left">
+                  <FaCalendarAlt className="inline-block mr-1" /> {language === 'en' ? 'Created At:' : 'Dibuat Pada:'}
+                </td>
+                <td className="py-2 px-4 border-b text-left">
                   {new Date(profileData.createdat).toLocaleString()}
                 </td>
               </tr>
               <tr>
-                <td className="py-2 px-4 border-b font-medium">Updated At:</td>
-                <td className="py-2 px-4 border-b">
+                <td className="py-2 px-4 border-b font-medium text-left">
+                  <FaCalendarAlt className="inline-block mr-1" /> {language === 'en' ? 'Updated At:' : 'Diperbarui Pada:'}
+                </td>
+                <td className="py-2 px-4 border-b text-left">
                   {new Date(profileData.updatedat).toLocaleString()}
                 </td>
               </tr>
             </tbody>
-          </table>
+          </motion.table>
           <div className="mt-4 flex justify-between">
-            {isEditing ? (
-              <>
+            {isEditing ? <>
                 <button
                   onClick={handleUpdate}
                   className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
                 >
-                  Update Profile
+                  {language === 'en' ? 'Update Profile' : 'Perbarui Profil'}
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
                   className="bg-gray-300 text-black p-2 rounded-md hover:bg-gray-400"
                 >
-                  Cancel
+                  {language === 'en' ? 'Cancel' : 'Batal'}
                 </button>
               </>
             ) : (
@@ -154,21 +207,23 @@ export const Pengguna = () => {
                   onClick={() => setIsEditing(true)}
                   className="bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600 flex items-center"
                 >
-                  <FaUserEdit className="mr-2" /> Edit Profile
+                  <FaUserEdit className="mr-2" /> {language === 'en' ? 'Edit Profile' : 'Edit Profil'}
                 </button>
                 <button
                   onClick={handleDelete}
                   className="bg-red-600 text-white p-2 rounded-md hover:bg-red-700 flex items-center"
                 >
-                  <FaTrash className="mr-2" /> Delete Profile
+                  <FaTrash className="mr-2" /> {language === 'en' ? 'Delete Profile' : 'Hapus Profil'}
                 </button>
               </>
             )}
           </div>
         </div>
       ) : (
-        <p className="text-center">Loading...</p>
+        <p className="text-center">{language === 'en' ? 'Loading...' : 'Memuat...'}</p>
       )}
     </div>
   );
 };
+
+export default Pengguna;

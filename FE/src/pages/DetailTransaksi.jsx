@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; // Import useParams and useNavigate
 import { API_Source } from '../global/Apisource'; // Importing the API source
-import { FaTrash, FaEdit } from 'react-icons/fa'; // Importing icons from react-icons
+import { FaTrash, FaEdit, FaBook, FaArrowLeft, FaIdCard, FaUser , FaMoneyBillWave, FaCalendarAlt } from 'react-icons/fa'; // Importing icons from react-icons
+import { motion } from 'framer-motion'; // Import Framer Motion
+import Swal from 'sweetalert2'; // Import SweetAlert
 
-export const DetailTransaksi = () => {
+export const DetailTransaksi = ({ isDarkMode, language }) => {
   const { id } = useParams(); // Get the transaction ID from the URL parameters
   const navigate = useNavigate(); // Initialize navigate
   const [transaction, setTransaction] = useState(null);
@@ -44,10 +46,23 @@ export const DetailTransaksi = () => {
   }, [id]);
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this transaction?')) {
+    const result = await Swal.fire({
+      title: language === 'en' ? 'Are you sure?' : 'Apakah Anda yakin?',
+      text: language === 'en' ? 'You won\'t be able to revert this!' : 'Anda tidak akan dapat mengembalikannya!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: language === 'en' ? 'Yes, delete it!' : 'Ya, hapus!',
+      cancelButtonText: language === 'en' ? 'Cancel' : 'Batal'
+    });
+
+    if (result.isConfirmed) {
       try {
         await API_Source.deleteTransaction(id);
-        alert('Transaction deleted successfully.');
+        Swal.fire(
+          language === 'en' ? 'Deleted!' : 'Dihapus!',
+          language === 'en' ? 'Transaction has been deleted.' : 'Transaksi telah dihapus.',
+          'success'
+        );
         navigate('/transaksiKeuangan'); // Redirect to the transaction list
       } catch (err) {
         setError('Failed to delete transaction: ' + err.message);
@@ -57,22 +72,41 @@ export const DetailTransaksi = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
-    try {
-      await API_Source.updateTransaction(
-        id,
-        studentid,
-        amount,
-        transactiondate
-      );
-      alert('Transaction updated successfully');
-      setIsEditing(false); // Exit editing mode
-    } catch (err) {
-      alert('Error updating transaction: ' + err.message);
+    const result = await Swal.fire({
+      title: language === 'en' ? 'Are you sure?' : 'Apakah Anda yakin?',
+      text: language === 'en' ? 'You are about to update this transaction.' : 'Anda akan memperbarui transaksi ini.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: language === 'en' ? 'Yes, update it!' : 'Ya, perbarui!',
+      cancelButtonText: language === 'en' ? 'Cancel' : 'Batal'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await API_Source.updateTransaction(
+          id,
+          studentid,
+          amount,
+          transactiondate
+        );
+        Swal.fire(
+          language === 'en' ? 'Updated!' : 'Diperbarui!',
+          language === 'en' ? 'Transaction updated successfully!' : 'Transaksi berhasil diper barui!',
+          'success'
+        );
+        setIsEditing(false); // Exit editing mode
+      } catch (err) {
+        Swal.fire(
+          language === 'en' ? 'Error!' : 'Kesalahan!',
+          language === 'en' ? 'Error updating transaction: ' + err.message : 'Kesalahan saat memperbarui transaksi: ' + err.message,
+          'error'
+        );
+      }
     }
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className={`text-center ${isDarkMode ? 'text-white' : 'text-black'}`}>Loading...</div>;
   }
 
   if (error) {
@@ -85,44 +119,64 @@ export const DetailTransaksi = () => {
     'Unknown Student';
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Detail Transaksi</h1>
-      <div className="bg-white shadow-md rounded-lg p-6">
+    <motion.div
+      className={`p-6 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-black'} min-h-screen`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <h1 className="text-3xl font-bold mb-6">
+        <FaBook className="inline-block mr-2" />
+        {language === 'en' ? 'Transaction Details' : 'Detail Transaksi'}
+      </h1>
+      <div className={`shadow-md rounded-lg p-6 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
         <div className="flex justify-between mb-4">
           <button
             onClick={() => navigate(-1)} // Navigate to the previous page
-            className="bg-gray-300 text-black p-2 rounded-md hover:bg-gray-400 transition duration-200"
+            className={`bg-gray-300 text-black p-2 rounded-md hover:bg-gray-400 transition duration-200 ${isDarkMode ? 'bg-gray-600 text-white' : ''}`}
           >
-            Previous
+            <FaArrowLeft className="inline-block mr-1" />
+            {language === 'en' ? 'Previous' : 'Sebelumnya'}
           </button>
         </div>
         {transaction ? (
           <div className="flex flex-col">
-            <table className="min-w-full bg-white border border-gray-300">
+            <table className={`min-w-full border border-gray-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
               <tbody>
                 <tr>
-                  <td className="py-2 px-4 border-b font-medium">
-                    Transaction ID:
+                  <td className="py-2 px-4 border-b font-medium text-left">
+                    <FaIdCard className="inline-block mr-1" />
+                    {language === 'en' ? 'Transaction ID:' : 'ID Transaksi:'}
                   </td>
-                  <td className="py-2 px-4 border-b">
+                  <td className="py-2 px-4 border-b text-left">
                     {transaction.transactionid}
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-2 px-4 border-b font-medium">
-                    Student Name:
+                  <td className="py-2 px-4 border-b font-medium text-left">
+                    <FaUser  className="inline-block mr-1" />
+                    {language === 'en' ? 'Student Name:' : 'Nama Siswa:'}
                   </td>
-                  <td className="py-2 px-4 border-b">{studentName}</td>
+                  <td className="py-2 px-4 border-b text-left">{studentName}</td>
                 </tr>
                 <tr>
-                  <td className=" py-2 px-4 border-b font-medium">Amount:</td>
-                  <td className="py-2 px-4 border-b">{transaction.amount}</td>
+                  <td className="py-2 px-4 border-b font-medium text-left">
+                    <FaMoneyBillWave className="inline-block mr-1" />
+                    {language === 'en' ? 'Amount:' : 'Jumlah:'}
+                  </td>
+                  <td className="py-2 px-4 border-b text-left">
+                    {new Intl.NumberFormat('id-ID', {
+                      style: 'currency',
+                      currency: 'IDR',
+                    }).format(transaction.amount)}
+                  </td>
                 </tr>
                 <tr>
-                  <td className="py-2 px-4 border-b font-medium">
-                    Transaction Date:
+                  <td className="py-2 px-4 border-b font-medium text-left">
+                    <FaCalendarAlt className="inline-block mr-1" />
+                    {language === 'en' ? 'Transaction Date:' : 'Tanggal Transaksi:'}
                   </td>
-                  <td className="py-2 px-4 border-b">
+                  <td className="py-2 px-4 border-b text-left">
                     {new Date(transaction.transactiondate).toLocaleString()}
                   </td>
                 </tr>
@@ -132,12 +186,14 @@ export const DetailTransaksi = () => {
             {isEditing ? (
               <form onSubmit={handleUpdate} className="mt-4">
                 <div className="mb-4">
-                  <label className="block mb-2 font-medium">Student:</label>
+                  <label className="block mb-2 font-medium">
+                    {language === 'en' ? 'Student:' : 'Siswa:'}
+                  </label>
                   <select
                     value={studentid}
-                    onChange={(e) => setStudentId(e.target.value)} // Update studentid state on change
+                    onChange={(e) => setStudentId(e.target .value)} // Update studentid state on change
                     required
-                    className="border rounded p-2"
+                    className={`border rounded p-2 ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}
                   >
                     {students.map((student) => (
                       <option key={student.studentid} value={student.studentid}>
@@ -147,62 +203,65 @@ export const DetailTransaksi = () => {
                   </select>
                 </div>
                 <div className="mb-4">
-                  <label className="block mb-2 font-medium">Amount:</label>
+                  <label className="block mb-2 font-medium">
+                    {language === 'en' ? 'Amount:' : 'Jumlah:'}
+                  </label>
                   <input
                     type="number"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)} // Update amount state on change
-                    required
-                    className="border rounded p-2 w-full"
+                    className={`border rounded p-2 w-full ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}
                   />
                 </div>
                 <div className="mb-4">
                   <label className="block mb-2 font-medium">
-                    Transaction Date:
+                    {language === 'en' ? 'Transaction Date:' : 'Tanggal Transaksi:'}
                   </label>
                   <input
                     type="datetime-local"
                     value={transactiondate}
                     onChange={(e) => setTransactionDate(e.target.value)} // Update transactiondate state on change
                     required
-                    className="border rounded p-2 w-full"
+                    className={`border rounded p-2 w-full ${isDarkMode ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}
                   />
                 </div>
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-200"
+                  className={`bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition duration-200`}
                 >
-                  Update Transaction
+                  {language === 'en' ? 'Update Transaction' : 'Perbarui Transaksi'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="ml-2 bg-gray-300 text-black p-2 rounded-md hover:bg-gray-400 transition duration-200"
+                  className={`ml-2 bg-gray-300 text-black p-2 rounded-md hover:bg-gray-400 transition duration-200 ${isDarkMode ? 'bg-gray-600 text-white' : ''}`}
                 >
-                  Cancel
+                  {language === 'en' ? 'Cancel' : 'Batal'}
                 </button>
               </form>
             ) : (
               <div className="mt-4 flex space-x-2">
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600 transition duration-200"
+                  className={`bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600 transition duration-200`}
                 >
-                  <FaEdit className="inline mr-1" /> Edit Transaction
+                  <FaEdit className="inline mr-1" /> {language === 'en' ? 'Edit Transaction' : 'Edit Transaksi'}
                 </button>
                 <button
                   onClick={handleDelete}
-                  className="bg-red-600 text-white p-2 rounded-md hover:bg-red-700 transition duration-200"
+                  className={`bg-red-600 text-white p-2 rounded-md hover:bg-red-700 transition duration-200`}
                 >
-                  <FaTrash className="inline mr-1" /> Delete Transaction
+                  <FaTrash className="inline mr-1" /> {language === 'en' ? 'Delete Transaction' : 'Hapus Transaksi'}
                 </button>
               </div>
             )}
           </div>
         ) : (
-          <div>No transaction found.</div>
+          <div>{language === 'en' ? 'No transaction found.' : 'Transaksi tidak ditemukan.'}</div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
+
+export default DetailTransaksi;
